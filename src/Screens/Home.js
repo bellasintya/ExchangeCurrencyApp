@@ -2,28 +2,55 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { Container, Header, Content, Card, CardItem, Text, Body, Input, Item, Picker, Form, Button, Grid, Col, Row } from "native-base";
 
+import { getCurrency } from '../Redux/Actions/currency';
+
 const Home = () => {
 
-    const [kurs, setKurs] = useState();
+    const dispatch = useDispatch();
+
+    const formState = {
+        amount: 1,
+        kurs: '',
+    }
+
+    const [input, setInput] = useState(formState);
     const [selected, isSelected] = useState(false);
 
+    const handleChange = onValueChange => e => {
+        setInput({
+            ...input,
+            [onValueChange]: e.target.value,
+        })
+    }
+
     const handleClickButton = () => {
-        console.log('Halo')
         isSelected(true);
     }
-    
+
     const handleSubmit = () => {
-        console.log('Halo Submit')
         isSelected(false);
     }
 
     const onValueChange = (value) => {
-        setKurs({
-            selected: value
+        setInput({
+            kurs: value
         });
     }
 
-    
+    const fetchCurrency = async () => {
+        try {
+            console.log (input)
+            await dispatch(getCurrency());
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const { currencyList } = useSelector(data => data.currency);
+
+    useEffect(() => {
+        fetchCurrency()
+    }, []);
 
     return (
         <Container>
@@ -42,12 +69,14 @@ const Home = () => {
                                     </Row>
                                     <Row style={{ alignItems: 'flex-end', backgroundColor: 'white', height: 30, width: 200 }}>
                                         <Item regular style={{ height: 30, width: 250 }}>
-                                            <Input placeholder='Input amount' />
+                                            <Input placeholder='Input amount'
+                                                keyboardType='numeric'
+                                                onChange={handleChange('amount')}
+                                            />
                                         </Item>
                                     </Row>
                                 </Col>
                             </Grid>
-
                         </Body>
                     </CardItem>
                 </Card>
@@ -61,14 +90,15 @@ const Home = () => {
                                             <Text>IDR</Text>
                                         </Row>
                                         <Row style={{ alignContent: 'flex-end', backgroundColor: 'white', height: 30, width: 120 }}>
-                                            <Text>IDR = 345,00,0,</Text>
+                                            <Text>IDR  </Text><Text>=</Text><Text> {parseInt(currencyList.IDR * input.amount)}</Text>
                                         </Row>
                                     </Col>
                                     <Col style={{ backgroundColor: '#ffffff', height: 33, width: 250 }}>
                                         <Text>IDR - Indonesian Rupiah </Text>
                                     </Col>
                                     <Col style={{ backgroundColor: '#ffffff', height: 33, width: 250 }}>
-                                        <Text>1 USD = IDR 34, 450,45</Text>
+                                        <Text>1 USD = IDR {currencyList.IDR}</Text>
+                                        {console.log(input.amount)}
                                     </Col>
                                 </Col>
                                 <Col style={{ height: 100, width: 50 }}>
@@ -80,7 +110,7 @@ const Home = () => {
                         </Body>
                     </CardItem>
                 </Card>
-                {selected === true ?
+                {selected === false ?
                     <Card>
                         <CardItem bordered>
                             <Body>
@@ -95,10 +125,10 @@ const Home = () => {
                                                         placeholderStyle={{ color: "#2874F0" }}
                                                         note={false}
                                                         style={{ width: 200 }}
-                                                        selectedValue=''
-                                                    //   onValueChange={this.onValueChange.bind(this)}
+                                                        selectedValue={input.kurs}
+                                                        onValueChange={onValueChange.bind()}
                                                     >
-                                                        <Picker.Item label="CAD" value="" />
+                                                        <Picker.Item label="CAD" value="CAD" />
                                                         <Picker.Item label="IDR" value="IDR" />
                                                         <Picker.Item label="GBP" value="GBP" />
                                                         <Picker.Item label="CHF" value="CHF" />
@@ -108,12 +138,11 @@ const Home = () => {
                                                         <Picker.Item label="JPY" value="JPY" />
                                                         <Picker.Item label="KRW" value="KRW" />
                                                     </Picker>
-
                                                 </Form>
                                             </Row>
                                             <Row>
-                                                <Button style={{ alignContent: 'flex-end', height: 35, width: 120 }} 
-                                                    onClick={()=>handleSubmit()}
+                                                <Button style={{ alignContent: 'flex-end', height: 35, width: 120 }}
+                                                    onClick={() => handleSubmit(value)}
                                                 >
                                                     <Text> Submit </Text>
                                                 </Button>
@@ -130,7 +159,7 @@ const Home = () => {
                             <Body>
                                 <Content>
                                     <Button style={{ alignContent: 'flex-end', height: 35, width: 300 }}
-                                        onClick={()=>handleClickButton()}
+                                        onClick={() => handleClickButton()}
                                     >
                                         <Text> (+) Add New Currencies </Text>
                                     </Button>
